@@ -1,0 +1,11 @@
+{
+    "bg": ["svgs/bg1.svg"],
+    "color": ["svgs/color1.svg"],
+    "wings": ["svgs/wingsTop1.svg", "svgs/wingsMiddle1.svg", "svgs/wingsBottom1.svg"],
+    "phil": ["svgs/phil1.svg"],
+    "spikes": ["svgs/spikes1.svg"],
+    "eyes": ["svgs/eyes1.svg", "svgs/frames1.svg"],
+    "top": ["svgs/top1.svg"],
+    "teeth": ["svgs/teeth1.svg", "svgs/gums1.svg"],
+    "nose": ["svgs/nose1.svg"]
+  }

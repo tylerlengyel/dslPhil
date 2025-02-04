@@ -1,0 +1,23 @@
+{
+  "name": "dslphil",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "svgo": "^3.3.2",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "chai": "^5.1.2",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.22.18"
+  }
+}
