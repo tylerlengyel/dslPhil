@@ -6,12 +6,12 @@ This document describes the Domain Specific Language (DSL) used to encode SVG fi
 
 ## Overview
 
-The DSL is designed to compactly encode SVG elements and attributes into a sequence of two-byte pairs. This encoding scheme is defined in our `svgToDSL.js` conversion script and includes:
+The DSL is designed to compactly encode SVG elements and their attributes into a sequence of two-byte pairs. The encoding is performed in the `svgToDSL.js` script and involves:
 
-- **Tag Definitions:** Mapping of SVG element names to indices.
-- **Attribute Definitions:** Mapping of SVG attribute names to indices.
-- **Encoding Methods:** Rules for encoding start tags, end tags, and attribute values.
-- **Inline Assembly:** Low-level operations in Solidity to efficiently read and return DSL Hex data.
+- **Tag Definitions:** Mapping of SVG element names to numeric indices.
+- **Attribute Definitions:** Mapping of SVG attribute names to numeric indices.
+- **Encoding Methods:** Rules for encoding start tags, end tags, and attribute values (including numbers, percentages, colors, and strings).
+- **Inline Assembly:** Low-level Solidity assembly used in the smart contracts to efficiently return the stored DSL Hex data.
 
 ---
 
@@ -19,7 +19,7 @@ The DSL is designed to compactly encode SVG elements and attributes into a seque
 
 ### TAGS Array
 
-The `TAGS` array lists the SVG element names that the conversion script recognizes. Each element’s index is used in the encoding process:
+The `TAGS` array lists the SVG element names recognized by the converter. Each element’s index is used to encode the start and end of an element.
 
 ```js
 const TAGS = [
@@ -52,13 +52,13 @@ const TAGS = [
 ];
 
 	•	Usage:
-	•	When processing an SVG element, its index is determined from this array.
-	•	If an element is not found, the index for "INVALIDTAG" is used.
+	•	When processing an SVG element, the converter finds its index in the above array.
+	•	If the element is not found, the index for "INVALIDTAG" is used.
 
 
 ATTRIBUTES Array
 
-The ATTRIBUTES array lists the SVG attribute names that the script supports:
+The ATTRIBUTES array defines the supported SVG attribute names. Each attribute name is assigned a unique index. The updated list now includes new attributes (e.g., "style", "data-name", and several filter/effects attributes) and has only one occurrence of "values".
 
 const ATTRIBUTES = [
   "xmlns",
@@ -89,6 +89,7 @@ const ATTRIBUTES = [
   "y",
   "font-size",
   "letter-spacing",
+  "style",         // For wings trait.
   "opacity",
   "id",
   "xlink:href",
@@ -104,7 +105,7 @@ const ATTRIBUTES = [
   "in",
   "in2",
   "type",
-  "values",
+  "values",        // Only one occurrence is kept.
   "operator",
   "k1",
   "k2",
@@ -119,80 +120,89 @@ const ATTRIBUTES = [
   "attributeName",
   "dur",
   "repeatCount",
-  "values",
+  "data-name",     // For attributes found in eyes1.svg and teeth1.svg.
+  // New attributes for filter and effects:
+  "primitiveUnits",
+  "baseFrequency",
+  "numOctaves",
+  "seed",
+  "mode",
+  "xChannelSelector",
+  "yChannelSelector",
   "INVALIDATTRIBUTE"
 ];
 
 	•	Usage:
-	•	Each attribute encountered is matched to its index in this array.
-	•	Unknown attributes are skipped using the "INVALIDATTRIBUTE" index.
-
+	•	The converter uses ATTRIBUTES.indexOf(attrName) to find the index for each attribute.
+	•	If an attribute is not found (or is unknown), the index for "INVALIDATTRIBUTE" is used.
 
 2. Encoding Methods
 
 DSL Lines
 
-Each component (tag, attribute, or value) is encoded as a two-byte (16-bit) pair.
+Each component (tag, attribute, or value) is encoded as a two-byte (16-bit) pair. The first byte typically holds the data value (or a part of it), and the second byte may include a marker or flag.
 
-Start & End Tags
-	•	Start Tag Encoding:
-The first byte is calculated as:
-0x80 + 0x40 + tagIndex
-The second byte is set to 0x00.
-	•	End Tag Encoding:
-The first byte is:
-0x80 + tagIndex
-The second byte is 0x00.
+Start & End Tag Encoding
+	•	Start Tag:
+Encoded as 0x80 + 0x40 + tagIndex in the first byte and 0x00 in the second byte.
+	•	End Tag:
+Encoded as 0x80 + tagIndex in the first byte and 0x00 in the second byte.
 
 Attribute Encoding
 	1.	Attribute Name:
-	•	The attribute’s index from the ATTRIBUTES array is stored first (as one byte), followed by a byte placeholder (typically 0x00).
+	•	The attribute’s index (from the ATTRIBUTES array) is encoded first, followed by a zero byte.
 	2.	Attribute Value:
-The encoding depends on the type of value:
-	•	Numerical Values:
-	•	Integers are directly encoded.
-	•	Decimal values are converted to fixed-point representation.
+	•	Numbers:
+	•	Plain Numbers:
+	•	Integers are encoded as a 12-bit value (the lower 8 bits in the first byte and the upper 4 bits in the second byte).
+	•	Decimals are scaled by 10 if a decimal point is present (using marker 0x10).
+	•	Numeric fractions (e.g., .5) are scaled by 1000 and use marker 0x10.
 	•	Percentages:
-	•	Values ending with % are parsed and encoded with a special percentage flag.
-	•	Color Values:
-	•	Hexadecimal colors (e.g., #FF0000) are parsed into their RGB components and encoded.
-	•	rgb(…) formats are similarly split and encoded.
-	•	Special Attributes:
-	•	Attributes like xmlns or viewBox are split into parts and encoded accordingly.
+	•	Encoded with a marker 0x40 after parsing the numeric value.
+	•	Colors:
+	•	Hex Colors:
+	•	E.g., #AABBCC is split into RGB components and each is encoded.
+	•	rgb() Colors:
+	•	The three numeric components are encoded similarly.
+	•	Basic Named Colors:
+	•	Looked up in the BASIC_COLORS mapping.
+	•	Strings:
+	•	Encoded by first writing the string length with a marker (0x20), then each character’s ASCII code.
+	•	This covers arbitrary strings (like ids or URL references such as url(#a)).
+	•	Special Case – baseFrequency:
+	•	May contain two values separated by whitespace. The converter splits and encodes each part individually.
 
 
 3. Inline Assembly in Smart Contracts
 
-The smart contracts use inline assembly in the getDSLHex() function to efficiently load and return the DSL Hex data from storage. Here’s a simplified view of the assembly logic:
+The smart contracts use inline assembly in the getDSLHex() function to efficiently load and return the DSL Hex data. Key points:
 	•	Memory Allocation:
-Allocate a memory block starting at the free memory pointer (0x40).
-	•	Copying Data:
-	•	Load the length of the DSL_HEX constant (first 32 bytes).
-	•	Copy the DSL_HEX content (starting from byte 33) into the allocated memory.
-	•	Update the free memory pointer after copying.
-
-This low-level approach minimizes gas costs when returning the DSL data.
+The free memory pointer (0x40) is used to allocate memory for the output.
+	•	Data Copying:
+	•	The length of the DSL_HEX constant is read from memory.
+	•	The DSL_HEX data is then copied from the constant into the allocated memory.
+	•	Efficiency:
+This low-level operation is designed to be gas efficient when the DSL hex data is returned.
 
 
 4. Versioning and Documentation
 	•	Embedded in Code:
-The DSL specification is implemented directly in the svgToDSL.js script. Any changes to the TAGS, ATTRIBUTES, or encoding logic directly affect the DSL.
+The DSL specification is implemented in the svgToDSL.js script (via the TAGS and ATTRIBUTES arrays and the encoding functions). Any updates to these arrays or functions affect the DSL directly.
 	•	External Documentation:
-It is recommended to maintain this document alongside the codebase (under version control) so that any updates to the DSL are tracked and documented.
+Maintaining this document under version control ensures that any modifications are tracked. This documentation should be updated whenever the encoding logic or attribute definitions change.
 
 
 5. Example of an Encoded Element
 
-For instance, an SVG element such as:
+For example, consider an SVG element like:
 <circle cx="5" cy="5" r="4" fill="red"/>
-might be encoded as follows:
+The encoding process would be:
 	1.	Start Tag for circle:
-	•	Look up circle in the TAGS array to get its index.
-	•	Encode using 0x80 + 0x40 + tagIndex.
+	•	The converter looks up "circle" in the TAGS array to obtain its index.
+	•	Encodes the start tag as 0x80 + 0x40 + tagIndex.
 	2.	Attributes:
-	•	cx, cy, r, and fill are encoded by looking up their indices in the ATTRIBUTES array.
-	•	Their values are processed based on whether they are numeric or color values.
+	•	Each attribute (cx, cy, r, and fill) is looked up in the ATTRIBUTES array.
+	•	Their values are encoded based on type (e.g., integer for cx, cy, r and a named color for fill).
 	3.	End Tag:
-	•	The corresponding end tag is encoded as 0x80 + tagIndex.
-
-
+	•	The end tag is encoded as 0x80 + tagIndex.
+    

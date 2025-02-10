@@ -1,0 +1,320 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/Users/tylerlengyel/Desktop/dslPhil/contracts/TraitBg.sol": {
+      "lastModificationDate": 1739086974079,
+      "contentHash": "cb757d7ec38a8bcb4db1122aedbe478b",
+      "sourceName": "contracts/TraitBg.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "TraitBG"
+      ]
+    },
+    "/Users/tylerlengyel/Desktop/dslPhil/contracts/TraitColor.sol": {
+      "lastModificationDate": 1738719869538,
+      "contentHash": "d204da575dd47dbcc08937233e333715",
+      "sourceName": "contracts/TraitColor.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "TraitColor"
+      ]
+    },
+    "/Users/tylerlengyel/Desktop/dslPhil/contracts/TraitEyes.sol": {
+      "lastModificationDate": 1738721829409,
+      "contentHash": "0dd86b1c7fef513d47840895057c18bf",
+      "sourceName": "contracts/TraitEyes.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "TraitEyes"
+      ]
+    },
+    "/Users/tylerlengyel/Desktop/dslPhil/contracts/TraitNose.sol": {
+      "lastModificationDate": 1738721867028,
+      "contentHash": "4f3a10c5082453c9c093d193e5b26488",
+      "sourceName": "contracts/TraitNose.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "TraitNose"
+      ]
+    },
+    "/Users/tylerlengyel/Desktop/dslPhil/contracts/TraitPhil.sol": {
+      "lastModificationDate": 1738721930918,
+      "contentHash": "ff9de135da27dc4da17c9a257b9f1acd",
+      "sourceName": "contracts/TraitPhil.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "TraitPhil"
+      ]
+    },
+    "/Users/tylerlengyel/Desktop/dslPhil/contracts/TraitSpikes.sol": {
+      "lastModificationDate": 1739086859415,
+      "contentHash": "335b28829be28fb5e69dce971f1c2c4c",
+      "sourceName": "contracts/TraitSpikes.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "TraitSpikes"
+      ]
+    },
+    "/Users/tylerlengyel/Desktop/dslPhil/contracts/TraitTeeth.sol": {
+      "lastModificationDate": 1738721958371,
+      "contentHash": "5e76d49fe135fa772b336cf89c630fec",
+      "sourceName": "contracts/TraitTeeth.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "TraitTeeth"
+      ]
+    },
+    "/Users/tylerlengyel/Desktop/dslPhil/contracts/TraitTop.sol": {
+      "lastModificationDate": 1739088383067,
+      "contentHash": "5bc9a6c021b0d727091772da7d2f2c58",
+      "sourceName": "contracts/TraitTop.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "TraitTop"
+      ]
+    },
+    "/Users/tylerlengyel/Desktop/dslPhil/contracts/TraitWings.sol": {
+      "lastModificationDate": 1739086592285,
+      "contentHash": "8823a9b1bb77bb4720889d53547275a7",
+      "sourceName": "contracts/TraitWings.sol",
+      "solcConfig": {
+        "version": "0.8.0",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "TraitWings"
+      ]
+    }
+  }
+}

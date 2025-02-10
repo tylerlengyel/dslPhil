@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^16.4.7",
     "fs": "^0.0.1-security",
     "svgo": "^3.3.2",
     "xml2js": "^0.6.2"

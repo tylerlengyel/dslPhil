@@ -1,13 +1,13 @@
 
     <svg xmlns="http://www.w3.org/2000/svg" width="420" height="420" viewBox="0 0 420 420" preserveAspectRatio="xMidYMid meet">
       <defs>
-        <filter id="filter-1738650429665-991" x="0" y="0" width="100%" height="100%" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">
-          <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="101" result="turbulence"></feTurbulence>
-          <feColorMatrix type="hueRotate" values="40" result="hue"></feColorMatrix>
+        <filter id="filter-1739204797885-314" x="0" y="0" width="100%" height="100%" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse">
+          <feTurbulence type="fractalNoise" baseFrequency="0.029" numOctaves="3" seed="989" result="turbulence"></feTurbulence>
+          <feColorMatrix type="hueRotate" values="319" result="hue"></feColorMatrix>
           <feBlend in="turbulence" in2="hue" mode="multiply" result="basePattern"></feBlend>
           
           
-    <feTurbulence type="fractalNoise" baseFrequency="0.046" numOctaves="4" seed="266" result="turbulenceCracks"></feTurbulence>
+    <feTurbulence type="fractalNoise" baseFrequency="0.050" numOctaves="4" seed="878" result="turbulenceCracks"></feTurbulence>
     <feDisplacementMap in="turbulenceCracks" in2="SourceGraphic" scale="10" xChannelSelector="R" yChannelSelector="G" result="displacedCracks"></feDisplacementMap>
     <feColorMatrix type="matrix" values="1 0 0 0 0
               0 1 0 0 0
@@ -21,21 +21,21 @@
   
         </filter>
         
-    <linearGradient id="grad-filter-1738650429665-991-1" gradientTransform="rotate(89 0.5 0.5)">
-      <stop offset="0%" stop-color="rgb(257,201,79)"></stop>
-    <stop offset="50%" stop-color="rgb(149,150,78)"></stop>
-    <stop offset="100%" stop-color="rgb(228,224,24)"></stop>
+    <linearGradient id="grad-filter-1739204797885-314-1" gradientTransform="rotate(254 0.5 0.5)">
+      <stop offset="0%" stop-color="rgb(-4,117,9)"></stop>
+    <stop offset="50%" stop-color="rgb(127,154,-3)"></stop>
+    <stop offset="100%" stop-color="rgb(202,120,234)"></stop>
     </linearGradient>
-    <radialGradient id="grad-filter-1738650429665-991-2" cx="0.12" cy="0.68" r="0.92" fx="0.09" fy="0.48">
-      <stop offset="0%" stop-color="rgb(257,201,79)"></stop>
-    <stop offset="50%" stop-color="rgb(149,150,78)"></stop>
-    <stop offset="100%" stop-color="rgb(228,224,24)"></stop>
+    <radialGradient id="grad-filter-1739204797885-314-2" cx="0.73" cy="0.81" r="0.78" fx="0.69" fy="0.46">
+      <stop offset="0%" stop-color="rgb(-4,117,9)"></stop>
+    <stop offset="50%" stop-color="rgb(127,154,-3)"></stop>
+    <stop offset="100%" stop-color="rgb(202,120,234)"></stop>
     </radialGradient>
   
       </defs>
       <!-- Transparent Background Rectangle for Better Visibility in Illustrator -->
       <rect width="100%" height="100%" fill="white" opacity="0"></rect>
       <!-- Apply Filter Directly to a Single Rectangle -->
-      <rect width="100%" height="100%" fill="url(#grad-filter-1738650429665-991-1)" filter="url(#filter-1738650429665-991)" opacity="0.25"></rect>
+      <rect width="100%" height="100%" fill="url(#grad-filter-1739204797885-314-1)" filter="url(#filter-1739204797885-314)" opacity="0.33"></rect>
     </svg>
   
