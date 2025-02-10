@@ -115,6 +115,9 @@ const ATTRIBUTES = [
   "fill-opacity",
   "opacity",
 
+  // (NEW) include fill-rule
+  "fill-rule",
+
   // Gradient specific
   "gradientUnits",
   "gradientTransform",
@@ -163,6 +166,7 @@ const ATTRIBUTES = [
   "clip-path",
   "mask",
   "filter",
+  "preserveAspectRatio",
 
   // Must be last
   "INVALIDATTRIBUTE"
@@ -185,7 +189,7 @@ function getAttrIndex(attrName) {
 }
 
 /**
- * UPDATED: Encodes a string value using a 16‐bit length.
+ * Encodes a string value using a 16‐bit length.
  * The first token carries the high byte along with the marker,
  * then a second token holds the low byte.
  */
@@ -194,7 +198,7 @@ function encodeStringValue(str, isStyle = false) {
   const marker = isStyle ? 0x21 : 0x20;
   const len = str.length;
   pushLine((len >> 8) & 0xff, marker); // high byte with marker
-  pushLine(len & 0xff, 0x00);            // low byte (no marker)
+  pushLine(len & 0xff, 0x00);         // low byte
   for (let i = 0; i < len; i++) {
     pushLine(str.charCodeAt(i), 0x00);
   }
@@ -205,7 +209,7 @@ function encodeAttributeValue(attrName, rawValue) {
   const val = rawValue.toString().trim();
 
   // Special attribute handling
-  switch(attrName) {
+  switch (attrName) {
     case 'stop-opacity':
     case 'fill-opacity':
     case 'stroke-opacity':
@@ -214,7 +218,6 @@ function encodeAttributeValue(attrName, rawValue) {
       pushLine(Math.round(opacity * 255), 0x30);
       return;
     }
-    
     case 'gradientTransform':
     case 'transform':
     case 'style':
@@ -224,7 +227,7 @@ function encodeAttributeValue(attrName, rawValue) {
     }
   }
 
-  // Handle numeric values
+  // Numeric values (including negative)
   if (/^-?\d*\.?\d+$/.test(val)) {
     const num = parseFloat(val);
     const scaled = Math.round(num * 100);
@@ -232,14 +235,14 @@ function encodeAttributeValue(attrName, rawValue) {
     return;
   }
 
-  // Handle percentages
+  // Percentages
   if (/^-?\d*\.?\d+%$/.test(val)) {
     const num = parseFloat(val);
     pushLine(Math.round(num), 0x40);
     return;
   }
 
-  // Handle colors
+  // Colors (#RRGGBB)
   if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
     const r = parseInt(val.slice(1, 3), 16);
     const g = parseInt(val.slice(3, 5), 16);
@@ -249,14 +252,14 @@ function encodeAttributeValue(attrName, rawValue) {
     return;
   }
 
-  // Handle urls
+  // url(#someId)
   const urlMatch = val.match(/^url\(#([^)]+)\)$/);
   if (urlMatch) {
     encodeStringValue(urlMatch[1], false);
     return;
   }
 
-  // Default to string
+  // Default: treat as plain string
   encodeStringValue(val);
 }
 
@@ -272,10 +275,12 @@ function encodeAttributes(nodeName, nodeAttrs) {
 }
 
 function encodeStartTag(tagIdx) {
+  // Start tag marker: 0xC0 + tagIdx
   pushLine(0x80 + 0x40 + tagIdx, 0x00);
 }
 
 function encodeEndTag(tagIdx) {
+  // End tag marker: 0x80 + tagIdx
   pushLine(0x80 + tagIdx, 0x00);
 }
 
@@ -284,20 +289,20 @@ function encodeNode(nodeName, nodeAttrs, children) {
   encodeStartTag(tIdx);
 
   if (nodeName === 'style') {
-    // Special handling for style tag content
+    // For <style>, the actual CSS is in nodeAttrs._:
     const styleContent = nodeAttrs._ || '';
     const len = styleContent.length;
-    pushLine((len >> 8) & 0xff, 0x21);
-    pushLine(len & 0xff, 0x00);
+    pushLine((len >> 8) & 0xff, 0x21); // high byte + style marker
+    pushLine(len & 0xff, 0x00);       // low byte
     for (let i = 0; i < len; i++) {
       pushLine(styleContent.charCodeAt(i), 0x00);
     }
   } else {
-    // Handle all other attributes normally
+    // Standard attributes
     encodeAttributes(nodeName, nodeAttrs);
   }
 
-  // Process children
+  // Children
   for (const child of children) {
     encodeNode(child.name, child.attrs, child.children);
   }
@@ -309,7 +314,7 @@ function flattenXML(obj, tagName = "svg") {
   const nodeAttrs = { ...obj.$ } || {};
   const children = [];
 
-  // Special handling for style tags - preserve the text content
+  // If this is a <style> node with text content in obj._, preserve it:
   if (tagName === 'style' && obj._) {
     nodeAttrs._ = obj._;
   }
@@ -330,25 +335,25 @@ async function processSvgFile(filePath) {
   console.log(`Processing: ${filePath}`);
   const rawSvg = fs.readFileSync(filePath, "utf8");
 
-  // Preserve all SVG features during optimization
+  // Optimize with SVGO
   const optimizedSvg = optimize(rawSvg, svgoConfig);
   if (optimizedSvg.error) {
     throw new Error(`SVGO optimization failed: ${optimizedSvg.error}`);
   }
 
-  // Parse and process the SVG
+  // Parse and flatten
   const result = await xml2js.parseStringPromise(optimizedSvg.data);
   const rootKey = Object.keys(result)[0];
   const rootNode = flattenXML(result[rootKey], rootKey);
 
-  // Generate the DSL hex
+  // Encode to DSL
   DSL_LINES = [];
   encodeNode(rootNode.name, rootNode.attrs, rootNode.children);
 
+  // Convert to hex
   const hexLines = DSL_LINES.map(([a, b]) => {
     return (a < 16 ? "0" : "") + a.toString(16) + (b < 16 ? "0" : "") + b.toString(16);
   });
-
   return hexLines.join("");
 }
 
@@ -363,7 +368,7 @@ async function processTraitFiles(filePaths) {
 
 module.exports = { processSvgFile, processTraitFiles };
 
-// Main CLI execution
+// Main CLI usage
 if (require.main === module) {
   (async function main() {
     if (process.argv.length < 3) {
