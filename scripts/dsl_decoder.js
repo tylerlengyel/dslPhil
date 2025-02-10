@@ -72,6 +72,9 @@ const ATTRIBUTES = [
   "fill-opacity",
   "opacity",
 
+  // (NEW) include fill-rule
+  "fill-rule",
+
   // Gradient specific
   "gradientUnits",
   "gradientTransform",
@@ -120,6 +123,7 @@ const ATTRIBUTES = [
   "clip-path",
   "mask",
   "filter",
+  "preserveAspectRatio",
 
   // Must be last
   "INVALIDATTRIBUTE"
@@ -145,6 +149,7 @@ if (!/^[0-9A-Fa-f]+$/.test(hexString)) {
   process.exit(1);
 }
 
+// Convert the hex to tokens
 const tokens = [];
 for (let i = 0; i < hexString.length; i += 4) {
   const a = parseInt(hexString.substr(i, 2), 16);
@@ -163,9 +168,7 @@ function peekToken() {
 }
 
 /**
- * UPDATED: Reads a string value encoded with a 16‐bit length.
- * The first token contains the high byte (with a marker in b),
- * the next token the low byte.
+ * Reads a string value encoded with a 16‐bit length.
  */
 function decodeStringValue(isStyle = false) {
   const highToken = nextToken();
@@ -202,47 +205,49 @@ function decodeSingleAttributeValue(attrName) {
   const look = peekToken();
   if (!look) return "";
 
-  // Marker-based values:
+  // Check the "b" byte for markers
   switch (look.b) {
-    case 0x20: // Regular string marker
+    case 0x20: // normal string
       return decodeStringValue();
-    case 0x21: // Style string marker
+    case 0x21: // style string
       return decodeStringValue(true);
-    case 0x30: { // Opacity
+    case 0x30: { // opacity byte
       const t = nextToken();
       return (t.a / 255).toString();
     }
-    case 0x40: { // Percentage
+    case 0x40: { // percentage
       const t = nextToken();
       return t.a + "%";
     }
   }
 
-  // Handle color attributes
+  // If it's a known color attribute
   if (COLOR_ATTRIBUTES.has(attrName)) {
     return decodeColor();
   }
 
-  // Default to numeric value
+  // Otherwise, treat it as a numeric value
   return decodeNumericValue();
 }
 
 function decodeAttributeValue(attrName) {
   let value = decodeSingleAttributeValue(attrName);
 
-  // Handle gradient references
+  // If fill or stroke is not a hex color, interpret as url(#something)
   if (value && (attrName === 'fill' || attrName === 'stroke')) {
     if (!value.startsWith('#')) {
       value = `url(#${value})`;
     }
   }
 
-  // Special formatting for certain attributes
-  switch(attrName) {
+  // Additional formatting
+  switch (attrName) {
     case 'gradientTransform':
+      // no special reformat
       break;
     case 'style':
       if (value.startsWith('url(#')) {
+        // if style is "url(#...)", might want to do something else
         value = `fill:${value}`;
       }
       break;
@@ -250,6 +255,7 @@ function decodeAttributeValue(attrName) {
     case 'fill-opacity':
     case 'stroke-opacity':
     case 'opacity':
+      // Force float with 2 decimals
       value = parseFloat(value).toFixed(2);
       break;
   }
@@ -265,39 +271,42 @@ function decodeNode() {
     throw new Error("Expected start tag token");
   }
 
+  // Start tag
   const startToken = nextToken();
   const tagIndex = startToken.a - 0xC0;
   const tagName = TAGS[tagIndex] || "INVALIDTAG";
   const node = { tag: tagName, attrs: {}, children: [] };
 
-  // Process attributes
+  // Read attributes
   while (tokenIndex < tokens.length) {
     const look = peekToken();
-    if (!look || look.a >= 0x80) break;
+    if (!look || look.a >= 0x80) break; // either end tag or next node
 
+    // Special handling for <style> content
     if (tagName === 'style') {
-      // Special handling for style content
       if (look.b === 0x21) {
-        const styleContent = decodeStringValue(true);
-        node.styleContent = styleContent;
+        // style marker
+        node.styleContent = decodeStringValue(true);
         break;
       }
     }
 
+    // Otherwise decode attribute
     const attrToken = nextToken();
     const attrName = ATTRIBUTES[attrToken.a] || "INVALIDATTRIBUTE";
     const val = decodeAttributeValue(attrName);
-    
+
     if (val !== undefined && val !== null && val !== "") {
       node.attrs[attrName] = val;
     }
   }
 
-  // Process children until we hit an end-tag for this node
+  // Read child nodes until we see an end tag for this node
   while (tokenIndex < tokens.length) {
     const look = peekToken();
     if (!look) break;
 
+    // Is it an end tag?
     if (look.a >= 0x80 && look.a < 0xC0) {
       const endToken = nextToken();
       const endTagIndex = endToken.a - 0x80;
@@ -307,6 +316,7 @@ function decodeNode() {
       return node;
     }
 
+    // Otherwise decode a child
     const child = decodeNode();
     if (child) {
       node.children.push(child);
@@ -328,18 +338,21 @@ function buildXML(node) {
 
   let inner = "";
   if (node.tag === 'style') {
+    // Insert the CSS text content
     inner = node.styleContent || "";
   } else {
+    // Normal children
     inner = node.children.map(buildXML).join("");
   }
 
   return `<${node.tag}${attrs}>${inner}</${node.tag}>`;
 }
 
+// Main decode logic
 try {
   tokenIndex = 0;
   const rootNode = decodeNode();
-  
+
   if (!rootNode) {
     throw new Error("Failed to decode SVG structure");
   }
@@ -348,6 +361,7 @@ try {
     rootNode.tag = "svg";
   }
 
+  // Ensure xmlns
   if (!rootNode.attrs["xmlns"]) {
     rootNode.attrs["xmlns"] = "http://www.w3.org/2000/svg";
   }
@@ -355,6 +369,9 @@ try {
     rootNode.attrs["xmlns:xlink"] = "http://www.w3.org/1999/xlink";
   }
 
+  // If there's a <defs>, ensure we have a style block. 
+  // Only insert the default gradient fill if there's *no* existing style
+  // or the style is empty:
   let defsNode = rootNode.children.find(child => child.tag === 'defs');
   if (defsNode) {
     let styleNode = defsNode.children.find(child => child.tag === 'style');
@@ -365,12 +382,17 @@ try {
         styleContent: '\n      .cls-1 {\n        fill: url(#radial-gradient);\n      }\n    '
       };
       defsNode.children.unshift(styleNode);
+    } else {
+      // If there's a style node, only overwrite if it's truly empty:
+      if (!styleNode.styleContent || !styleNode.styleContent.trim()) {
+        styleNode.styleContent = '\n      .cls-1 {\n        fill: url(#radial-gradient);\n      }\n    ';
+      }
     }
   }
 
   const svgOutput = '<?xml version="1.0" encoding="UTF-8"?>\n' + buildXML(rootNode);
   console.log(svgOutput);
-  
+
 } catch (error) {
   console.error("Error decoding SVG:", error.message);
   process.exit(1);
