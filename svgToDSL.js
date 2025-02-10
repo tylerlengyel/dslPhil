@@ -184,21 +184,18 @@ function getAttrIndex(attrName) {
   return idx < 0 ? ATTRIBUTES.indexOf("INVALIDATTRIBUTE") : idx;
 }
 
-function encodeStartTag(tagIdx) {
-  pushLine(0x80 + 0x40 + tagIdx, 0x00);
-}
-
-function encodeEndTag(tagIdx) {
-  pushLine(0x80 + tagIdx, 0x00);
-}
-
+/**
+ * UPDATED: Encodes a string value using a 16‐bit length.
+ * The first token carries the high byte along with the marker,
+ * then a second token holds the low byte.
+ */
 function encodeStringValue(str, isStyle = false) {
   if (!str) return;
-  
   const marker = isStyle ? 0x21 : 0x20;
-  pushLine(str.length, marker);
-  
-  for (let i = 0; i < str.length; i++) {
+  const len = str.length;
+  pushLine((len >> 8) & 0xff, marker); // high byte with marker
+  pushLine(len & 0xff, 0x00);            // low byte (no marker)
+  for (let i = 0; i < len; i++) {
     pushLine(str.charCodeAt(i), 0x00);
   }
 }
@@ -231,10 +228,8 @@ function encodeAttributeValue(attrName, rawValue) {
   if (/^-?\d*\.?\d+$/.test(val)) {
     const num = parseFloat(val);
     const scaled = Math.round(num * 100);
-    if (scaled >= -32768 && scaled <= 32767) {
-      pushLine(scaled & 0xff, (scaled >> 8) & 0xff);
-      return;
-    }
+    pushLine(scaled & 0xff, (scaled >> 8) & 0xff);
+    return;
   }
 
   // Handle percentages
@@ -276,6 +271,14 @@ function encodeAttributes(nodeName, nodeAttrs) {
   }
 }
 
+function encodeStartTag(tagIdx) {
+  pushLine(0x80 + 0x40 + tagIdx, 0x00);
+}
+
+function encodeEndTag(tagIdx) {
+  pushLine(0x80 + tagIdx, 0x00);
+}
+
 function encodeNode(nodeName, nodeAttrs, children) {
   const tIdx = getTagIndex(nodeName);
   encodeStartTag(tIdx);
@@ -283,9 +286,10 @@ function encodeNode(nodeName, nodeAttrs, children) {
   if (nodeName === 'style') {
     // Special handling for style tag content
     const styleContent = nodeAttrs._ || '';
-    const contentLength = styleContent.length;
-    pushLine(contentLength, 0x21);  // Use 0x21 marker for style content
-    for (let i = 0; i < contentLength; i++) {
+    const len = styleContent.length;
+    pushLine((len >> 8) & 0xff, 0x21);
+    pushLine(len & 0xff, 0x00);
+    for (let i = 0; i < len; i++) {
       pushLine(styleContent.charCodeAt(i), 0x00);
     }
   } else {
@@ -342,8 +346,7 @@ async function processSvgFile(filePath) {
   encodeNode(rootNode.name, rootNode.attrs, rootNode.children);
 
   const hexLines = DSL_LINES.map(([a, b]) => {
-    return (a < 16 ? "0" : "") + a.toString(16) + 
-           (b < 16 ? "0" : "") + b.toString(16);
+    return (a < 16 ? "0" : "") + a.toString(16) + (b < 16 ? "0" : "") + b.toString(16);
   });
 
   return hexLines.join("");
